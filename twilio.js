@@ -29,6 +29,7 @@ wss.on("connection", function connection(ws) {
         break;
       case "start":
         console.log("Start Message received:", message);
+        console.log(data.start.callSid);
         break;
       case "media":
         if (!has_seen_media) {
