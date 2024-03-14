@@ -29,13 +29,7 @@ wss.on("connection", function connection(ws) {
         console.log("Connected Message received:", message);
         break;
       case "start":
-        const readStream = fs.createReadStream("voice.mp3", {
-          flags: "r",
-          encoding: "binary",
-          mode: parseInt("0644", 8),
-          bufferSize: 64 * 1024,
-        });
-
+        readStream = fs.createReadStream("voice.mp3");
         const chunks = [];
 
         readStream.on("data", function (data) {
@@ -44,24 +38,19 @@ wss.on("connection", function connection(ws) {
 
         readStream.on("end", function () {
           const buffer = Buffer.concat(chunks);
-          const arrayBuffer = buffer.buffer.slice(
-            buffer.byteOffset,
-            buffer.byteOffset + buffer.byteLength
-          );
-
-          console.log("File read and converted to ArrayBuffer");
-          console.log("Emitting ArrayBuffer on media event...");
+          const uint8Array = new Uint8Array(buffer);
+          console.log(uint8Array);
 
           ws.send(
             JSON.stringify({
               event: "media",
               media: {
-                payload: base64.encode(Buffer.from(arrayBuffer)),
+                payload: uint8Array.buffer,
               },
-            })
+            }),
+            { binary: true }
           );
         });
-
         console.log("Start Message received:", message);
         console.log(data.start.callSid);
         break;
