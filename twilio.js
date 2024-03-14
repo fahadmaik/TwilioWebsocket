@@ -2,6 +2,7 @@ const WebSocket = require("ws");
 const base64 = require("base-64");
 const express = require("express");
 const http = require("http");
+const fs = require("fs");
 
 const app = express();
 const server = http.createServer(app);
@@ -28,6 +29,39 @@ wss.on("connection", function connection(ws) {
         console.log("Connected Message received:", message);
         break;
       case "start":
+        const readStream = fs.createReadStream("voice.mp3", {
+          flags: "r",
+          encoding: "binary",
+          mode: parseInt("0644", 8),
+          bufferSize: 64 * 1024,
+        });
+
+        const chunks = [];
+
+        readStream.on("data", function (data) {
+          chunks.push(data);
+        });
+
+        readStream.on("end", function () {
+          const buffer = Buffer.concat(chunks);
+          const arrayBuffer = buffer.buffer.slice(
+            buffer.byteOffset,
+            buffer.byteOffset + buffer.byteLength
+          );
+
+          console.log("File read and converted to ArrayBuffer");
+          console.log("Emitting ArrayBuffer on media event...");
+
+          ws.send(
+            JSON.stringify({
+              event: "media",
+              media: {
+                payload: base64.encode(Buffer.from(arrayBuffer)),
+              },
+            })
+          );
+        });
+
         console.log("Start Message received:", message);
         console.log(data.start.callSid);
         break;
