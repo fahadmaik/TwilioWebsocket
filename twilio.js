@@ -93,7 +93,7 @@ wss.on("connection", function connection(ws) {
               media: {
                 payload: payload,
               },
-              streamSid: meta.streamSid,
+              streamSid: data.start.streamSid,
             })
             // { binary: true }
           );
